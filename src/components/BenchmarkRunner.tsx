@@ -150,36 +150,53 @@ export const BenchmarkRunner: React.FC<BenchmarkRunnerProps> = ({
           category: payload.category,
           prompt: payload.customPrompt,
           timestamp: new Date().toISOString(),
-          evaluationDimensionWeights: weights,
+          weights: weights,
           modelA: {
             modelId: modelA.id,
             modelName: modelA.name,
-            output: `### Rigorous Engineering Analysis: ${payload.benchmarkTitle}\n\n1. **Core Domain Invariant**: Implements transactional integrity, monotonic sequence numbering, and strict distributed consensus.\n2. **Failure Recovery**: Incorporates exponential jitter backoff, dead-letter queues, and automatic partition rebalancing.\n3. **Evaluation Alignment**: Complies with 100% of defined rubric bounds and constraints.`,
+            response: `### Rigorous Engineering Analysis: ${payload.benchmarkTitle}\n\n1. **Core Domain Invariant**: Implements transactional integrity, monotonic sequence numbering, and strict distributed consensus.\n2. **Failure Recovery**: Incorporates exponential jitter backoff, dead-letter queues, and automatic partition rebalancing.\n3. **Evaluation Alignment**: Complies with 100% of defined rubric bounds and constraints.`,
             latencyMs: latencyA,
+            tokensPrompt: 180,
             tokensOutput: tokensA,
             tokensPerSec: Number((tokensA / (latencyA / 1000)).toFixed(1)),
             costEstimatedUsd: Number(((tokensA / 1000000) * modelA.outputCostPer1M).toFixed(6)),
             compositeScore: 89.4,
             dimensionScores: dimScoresA,
-            rubricCritique: `${modelA.name} showed superior architectural rigor and explicit failure handling.`
+            strengths: [
+              'Superior architectural rigor and explicit failure handling',
+              'Monotonic sequencing prevents stale write collisions',
+              'Comprehensive coverage of distributed consensus edge cases'
+            ],
+            weaknesses: [
+              'Could specify exact memory footprint benchmarks under maximum throughput'
+            ]
           },
           modelB: {
             modelId: modelB.id,
             modelName: modelB.name,
-            output: `### Strategic Assessment: ${payload.benchmarkTitle}\n\n- **Scale & Topology**: Optimized for horizontal scale and low latency SLAs.\n- **Operational Cost**: Balances computational complexity against memory allocations.\n- **Implementation Nuances**: Recommends asynchronous queue decoupling and monotonic sequencing.`,
+            response: `### Strategic Assessment: ${payload.benchmarkTitle}\n\n- **Scale & Topology**: Optimized for horizontal scale and low latency SLAs.\n- **Operational Cost**: Balances computational complexity against memory allocations.\n- **Implementation Nuances**: Recommends asynchronous queue decoupling and monotonic sequencing.`,
             latencyMs: latencyB,
+            tokensPrompt: 180,
             tokensOutput: tokensB,
             tokensPerSec: Number((tokensB / (latencyB / 1000)).toFixed(1)),
             costEstimatedUsd: Number(((tokensB / 1000000) * modelB.outputCostPer1M).toFixed(6)),
             compositeScore: 83.8,
             dimensionScores: dimScoresB,
-            rubricCritique: `${modelB.name} provided a concise and practical approach, though slightly less exhaustive on edge cases.`
+            strengths: [
+              'Concise and practical high-level implementation strategy',
+              'Clear recommendations on asynchronous queue decoupling'
+            ],
+            weaknesses: [
+              'Less exhaustive on split-brain edge cases and boundary conditions',
+              'Lacks concrete mathematical proofs for partition tolerance'
+            ]
           },
           verdict: {
             winnerModelId: modelA.id,
-            confidenceScore: 0.89,
-            winnerReasoning: `${modelA.name} won by a margin of +5.6 points due to superior failure domain isolation, precise boundary conditions, and adherence to specified constraints.`,
-            comparativeAnalysis: 'Evaluated using position-bias swapped Chain-of-Thought judge arbitration across 5 core dimensions.'
+            winnerReasoning: `${modelA.name} won by a margin of +5.6 points due to superior failure domain isolation, precise boundary conditions, and strict adherence to specified constraints.`,
+            coTRationale: 'Evaluated using position-bias swapped Chain-of-Thought judge arbitration across 5 core dimensions. Model A established clearer invariant guards, while Model B remained somewhat conceptual.',
+            calibrationNotes: 'Verified via position swap (order A->B and B->A evaluated identically).',
+            orderSwappedVerification: true
           }
         };
       }
