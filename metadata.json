@@ -1,0 +1,6 @@
+{
+  "name": "BenchMarkAI - Multi-Model LLM Evaluation Harness",
+  "description": "Enterprise-grade multi-model AI benchmark harness evaluating LLM performance across product reasoning, technical feasibility, completeness, relevance, and AI rubrics with automated LLM-as-Judge scoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
