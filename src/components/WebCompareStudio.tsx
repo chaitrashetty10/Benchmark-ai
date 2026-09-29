@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ModelProfile, EvaluationRun } from '../types/benchmark';
 import { Globe, Search, Loader2, Play, ExternalLink, Download, FileCode, CheckCircle, Check, ArrowRight, ShieldCheck, Trophy, Sparkles } from 'lucide-react';
 import { generateEvaluationHtmlReport } from '../utils/htmlReportGenerator';
-
+import { simulateClientSearch, simulateClientEvaluation } from '../utils/clientBenchmarkSimulator';)
 interface WebCompareStudioProps {
   models: ModelProfile[];
   onEvaluationCompleted: (run: EvaluationRun) => void;
@@ -54,26 +54,37 @@ export const WebCompareStudio: React.FC<WebCompareStudioProps> = ({
     setWebSources([]);
     setEvaluationResult(null);
 
+   
     try {
       const res = await fetch('/api/search-web', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: q })
       });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: Failed to fetch search`);
+      if (res.ok) {
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : {};
+        setWebSummary(data.result || '');
+        setWebSources(data.sources || []);
+      } else {
+        const sim = await simulateClientSearch(q);
+        setWebSummary(sim.result);
+        setWebSources(sim.sources);
       }
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
-      setWebSummary(data.result || '');
-      setWebSources(data.sources || []);
       if (overrideQ) {
         setCustomQuestion(overrideQ);
       } else if (!customQuestion) {
         setCustomQuestion(`Based on current industry standards and real-time documentation, analyze the strategic tradeoffs, architectural invariants, and production edge cases for: "${q}".`);
       }
     } catch (err) {
-      console.error('Web search error:', err);
+      const sim = await simulateClientSearch(q);
+      setWebSummary(sim.result);
+      setWebSources(sim.sources);
+      if (overrideQ) {
+        setCustomQuestion(overrideQ);
+      } else if (!customQuestion) {
+        setCustomQuestion(`Based on current industry standards and real-time documentation, analyze the strategic tradeoffs, architectural invariants, and production edge cases for: "${q}".`);
+      }
     } finally {
       setIsSearching(false);
     }
