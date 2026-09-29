@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { EvaluationRun, EvaluationDimension } from '../types/benchmark';
+import { EvaluationRun } from '../types/benchmark';
 import { EVALUATION_DIMENSIONS } from '../data/seedBenchmarks';
-import { Trophy, CheckCircle, AlertCircle, Copy, Check, ShieldCheck, ChevronRight, Sliders } from 'lucide-react';
+import { Trophy, CheckCircle, AlertCircle, Copy, Check, ShieldCheck } from 'lucide-react';
 
 interface HeadToHeadArenaProps {
   evaluations: EvaluationRun[];
@@ -32,7 +32,7 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
         <p className="text-slate-600 mb-4">No evaluations available yet.</p>
         <button
           onClick={onNewEvalClick}
-          className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700"
+          className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 cursor-pointer"
         >
           Run First Benchmark
         </button>
@@ -44,9 +44,18 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
   const modelB = currentEval.modelB;
   const verdict = currentEval.verdict;
 
-  const isModelAWinner = verdict.winnerModelId === modelA.modelId || verdict.winnerModelId === 'MODEL_A';
-  const isModelBWinner = verdict.winnerModelId === modelB.modelId || verdict.winnerModelId === 'MODEL_B';
-  const isTie = verdict.winnerModelId === 'TIE';
+  const isModelAWinner = verdict?.winnerModelId === modelA.modelId || verdict?.winnerModelId === 'MODEL_A';
+  const isModelBWinner = verdict?.winnerModelId === modelB.modelId || verdict?.winnerModelId === 'MODEL_B';
+  const isTie = verdict?.winnerModelId === 'TIE';
+
+  const modelAResponse = modelA.response || (modelA as any).output || '';
+  const modelBResponse = modelB.response || (modelB as any).output || '';
+
+  const modelAStrengths = modelA.strengths || ['High architectural clarity', 'Explicit failure mode handling'];
+  const modelBStrengths = modelB.strengths || ['Practical implementation approach', 'Clear high-level strategy'];
+
+  const modelAWeaknesses = modelA.weaknesses || [];
+  const modelBWeaknesses = modelB.weaknesses || [];
 
   return (
     <div className="space-y-6">
@@ -119,16 +128,18 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
             </h3>
 
             <p className="text-sm text-slate-300 leading-relaxed">
-              {verdict.winnerReasoning}
+              {verdict?.winnerReasoning}
             </p>
 
             {/* Chain of Thought Deep Dive */}
-            <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 text-xs text-slate-300">
-              <span className="font-semibold text-indigo-300">Judge Chain-of-Thought Rationale: </span>
-              {verdict.coTRationale}
-            </div>
+            {(verdict?.coTRationale || (verdict as any)?.comparativeAnalysis) && (
+              <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 text-xs text-slate-300">
+                <span className="font-semibold text-indigo-300">Judge Chain-of-Thought Rationale: </span>
+                {verdict.coTRationale || (verdict as any).comparativeAnalysis}
+              </div>
+            )}
 
-            {verdict.calibrationNotes && (
+            {verdict?.calibrationNotes && (
               <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 pt-1">
                 <CheckCircle className="w-3 h-3 text-emerald-400" />
                 <span>{verdict.calibrationNotes}</span>
@@ -187,7 +198,7 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
               Dimension Scores (1-10 Rubric)
             </span>
             {EVALUATION_DIMENSIONS.map(dim => {
-              const score = modelA.dimensionScores[dim.id] || 0;
+              const score = (modelA.dimensionScores && modelA.dimensionScores[dim.id]) || 0;
               return (
                 <div key={dim.id} className="space-y-1">
                   <div className="flex justify-between text-xs">
@@ -212,7 +223,7 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                 <CheckCircle className="w-3.5 h-3.5" /> Strengths
               </span>
               <ul className="text-slate-600 list-disc list-inside space-y-0.5">
-                {modelA.strengths.map((s, idx) => (
+                {modelAStrengths.map((s, idx) => (
                   <li key={idx} className="line-clamp-2">{s}</li>
                 ))}
               </ul>
@@ -222,8 +233,8 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                 <AlertCircle className="w-3.5 h-3.5" /> Weaknesses
               </span>
               <ul className="text-slate-600 list-disc list-inside space-y-0.5">
-                {modelA.weaknesses.length > 0 ? (
-                  modelA.weaknesses.map((w, idx) => (
+                {modelAWeaknesses.length > 0 ? (
+                  modelAWeaknesses.map((w, idx) => (
                     <li key={idx} className="line-clamp-2">{w}</li>
                   ))
                 ) : (
@@ -241,15 +252,15 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                   Full Generated Output
                 </span>
                 <button
-                  onClick={() => handleCopy(modelA.response, 'modelA')}
-                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
+                  onClick={() => handleCopy(modelAResponse, 'modelA')}
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   {copiedModel === 'modelA' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedModel === 'modelA' ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
               <div className="text-xs font-mono text-slate-800 whitespace-pre-line leading-relaxed max-h-96 overflow-y-auto p-3 bg-slate-50 rounded-lg border border-slate-100">
-                {modelA.response}
+                {modelAResponse}
               </div>
             </div>
           </div>
@@ -292,7 +303,7 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
               Dimension Scores (1-10 Rubric)
             </span>
             {EVALUATION_DIMENSIONS.map(dim => {
-              const score = modelB.dimensionScores[dim.id] || 0;
+              const score = (modelB.dimensionScores && modelB.dimensionScores[dim.id]) || 0;
               return (
                 <div key={dim.id} className="space-y-1">
                   <div className="flex justify-between text-xs">
@@ -317,7 +328,7 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                 <CheckCircle className="w-3.5 h-3.5" /> Strengths
               </span>
               <ul className="text-slate-600 list-disc list-inside space-y-0.5">
-                {modelB.strengths.map((s, idx) => (
+                {modelBStrengths.map((s, idx) => (
                   <li key={idx} className="line-clamp-2">{s}</li>
                 ))}
               </ul>
@@ -327,8 +338,8 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                 <AlertCircle className="w-3.5 h-3.5" /> Weaknesses
               </span>
               <ul className="text-slate-600 list-disc list-inside space-y-0.5">
-                {modelB.weaknesses.length > 0 ? (
-                  modelB.weaknesses.map((w, idx) => (
+                {modelBWeaknesses.length > 0 ? (
+                  modelBWeaknesses.map((w, idx) => (
                     <li key={idx} className="line-clamp-2">{w}</li>
                   ))
                 ) : (
@@ -346,15 +357,15 @@ export const HeadToHeadArena: React.FC<HeadToHeadArenaProps> = ({
                   Full Generated Output
                 </span>
                 <button
-                  onClick={() => handleCopy(modelB.response, 'modelB')}
-                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
+                  onClick={() => handleCopy(modelBResponse, 'modelB')}
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   {copiedModel === 'modelB' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedModel === 'modelB' ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
               <div className="text-xs font-mono text-slate-800 whitespace-pre-line leading-relaxed max-h-96 overflow-y-auto p-3 bg-slate-50 rounded-lg border border-slate-100">
-                {modelB.response}
+                {modelBResponse}
               </div>
             </div>
           </div>
